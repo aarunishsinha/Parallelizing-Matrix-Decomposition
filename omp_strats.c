@@ -48,16 +48,12 @@ int main(int argc, char* argv[]){
 	int num_threads = atoi(argv[3]);
 	int strt = atoi(argv[4]);
 	FILE* f;
-	double inp[n][n];
-	printf("Yo\n");
+	double **inp=(double**)malloc(n*(sizeof(double*)));
+	for(int i=0;i<n;i++){
+    inp[i]=(double*)malloc(sizeof(double)*n);
+	}
 	if((f = fopen(filename, "r")) == NULL)
   	exit(1);
-	printf("Yo1\n");
-  // if(fscanf(f, "%f%f", &n, &n) != 2)
-	// 	exit(1);
-	// printf("Yo2\n");
-  // if (height < 1 || height > MHEIGHT || width < 1 || width > MWIDTH)
-  // 	exit(1);
 
   for(int jj=0; jj<n; jj++){
     for(int ii=0; ii<n; ii++){
@@ -65,11 +61,35 @@ int main(int argc, char* argv[]){
 		}
 	}
   fclose(f);
-	printf("Y3\n");
-  for(int jj=0; jj<n; jj++){
-    for(int ii=0; ii<n; ii++)
-      printf ("%0.12f", inp[jj][ii]);
-    printf("\n");
-  }
+	const double **A = (const double **) inp;
+  // for(int jj=0; jj<n; jj++){
+  //   for(int ii=0; ii<n; ii++)
+  //     printf ("%0.12f", A[jj][ii]);
+  //   printf("\n");
+  // }
+	double **L=(double**)malloc(n*(sizeof(double*)));
+	for(int i=0;i<n;i++){
+    L[i]=(double*)malloc(sizeof(double)*n);
+	}
+	double **U=(double**)malloc(n*(sizeof(double*)));
+	for(int i=0;i<n;i++){
+    U[i]=(double*)malloc(sizeof(double)*n);
+	}
+	if(strt==0){
+		crout(A,L,U,n);
+		char* ext = ".txt";
+		char l_out_fname[50];
+		strcpy(l_out_fname,"output_L_0_");
+		const char * th = (const char *) argv[3];
+		strncat(l_out_fname,th,strlen(th));
+		strncat(l_out_fname,ext,4);
+
+		write_output(l_out_fname,L,n);
+		char u_out_fname[50];
+		strcpy(u_out_fname,"output_U_0_");
+		strncat(u_out_fname,th,strlen(th));
+		strncat(u_out_fname,ext,4);
+		write_output(u_out_fname,U,n);
+	}
   return 0;
 }
