@@ -29,3 +29,14 @@ relative/path/to/dir/filename.extension
 
 # Ignore a file without extension
 relative/path/to/dir/anotherfile
+
+cmake-build-debug/
+.clang-format
+CMakeLists.txt
+*.exe
+*.out
+test.c
+*.txt
+!input*.txt
+.idea/
+*.un~
