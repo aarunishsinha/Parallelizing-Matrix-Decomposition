@@ -62,6 +62,7 @@ int main(int argc, char* argv[]){
 	}
   fclose(f);
 	const double **A = (const double **) inp;
+	// Printing the matrix
   // for(int jj=0; jj<n; jj++){
   //   for(int ii=0; ii<n; ii++)
   //     printf ("%0.12f", A[jj][ii]);
