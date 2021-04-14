@@ -109,6 +109,63 @@ void s2_crout(double const **A, double **L, double **U, int n, int num_threads) 
         }
     }
 }
+
+void s3_section_1(double const **A, double **L, double **U, int n, int num_threads, int j){
+    #pragma omp parallel for num_threads(num_threads)
+    for (int i = j; i < n; i++) {
+        double sum = 0;
+        for (int k = 0; k < j; k++) {
+            sum = sum + L[i][k] * U[k][j];
+        }
+        L[i][j] = A[i][j] - sum;
+    }
+}
+
+void s3_section_2(double const **A, double **L, double **U, int n, int num_threads, int j){
+    double sum = 0;
+    for (int k = 0; k < j; k++) {
+        sum = sum + L[j][k] * U[k][j];
+    }
+    L[j][j] = A[j][j] - sum;
+    #pragma omp parallel for private(sum) num_threads(num_threads)
+    for (int i = j; i < n; i++) {
+        sum = 0;
+        for(int k = 0; k < j; k++) {
+            sum = sum + L[j][k] * U[k][i];
+        }
+        if (L[j][j] == 0) {
+            exit(0);
+        }
+        U[j][i] = (A[j][i] - sum) / L[j][j];
+    }
+}
+
+void s3_crout(double const **A, double **L, double **U, int n, int num_threads) {
+    int i, j, k;
+    // double sum = 0;
+    omp_set_nested(1);
+
+    #pragma omp parallel for private(i) num_threads(num_threads)
+    for (i = 0; i < n; i++) {
+        U[i][i] = 1;
+    }
+
+    for (j = 0; j < n; j++) {
+        #pragma omp parallel sections num_threads(2)
+        {
+            #pragma omp section
+            {
+                s3_section_1(A, L, U, n, num_threads/2, j);
+            }
+
+            #pragma omp section
+            {
+                s3_section_2(A, L ,U, n, num_threads - num_threads/2, j);
+            }
+        }
+    }
+}
+
 void write_output(char fname[], double** arr, int n ){
 	FILE *f = fopen(fname, "w");
 	for( int i = 0; i < n; i++){
@@ -211,7 +268,31 @@ int main(int argc, char* argv[]){
 		strncat(u_out_fname,ext,4);
 		write_output(u_out_fname,U,n);
 	}
+    else if(strt == 3){
+        start = omp_get_wtime();
+        s3_crout(A,L,U,n,num_threads);
+        end = omp_get_wtime();
+        char* ext = ".txt";
+        char l_out_fname[50];
+        strcpy(l_out_fname,"output_L_3_");
+        const char * th = (const char *) argv[3];
+        strncat(l_out_fname,th,strlen(th));
+        strncat(l_out_fname,ext,4);
 
+        write_output(l_out_fname,L,n);
+        char u_out_fname[50];
+        strcpy(u_out_fname,"output_U_3_");
+        strncat(u_out_fname,th,strlen(th));
+        strncat(u_out_fname,ext,4);
+        write_output(u_out_fname,U,n);
+    }
+    else if(strt == 4){
+        printf("Not Implemented\n");
+        return 0;
+    }
+    else{
+        exit(EXIT_FAILURE);
+    }
 	printf("Work took %f seconds\n", end - start);
   return 0;
 }
