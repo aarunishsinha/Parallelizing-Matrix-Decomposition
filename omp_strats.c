@@ -32,6 +32,42 @@ void crout(double const **A, double **L, double **U, int n) {
 		}
 	}
 }
+
+void s1_crout(double const **A, double **L, double **U, int n, int num_threads) {
+    int i, j, k;
+    double sum = 0;
+
+    #pragma omp parallel num_threads(num_threads) private(sum, i, j, k)
+    {
+        #pragma omp for
+        for (i = 0; i < n; i++) {
+            U[i][i] = 1;
+        }
+
+        for (j = 0; j < n; j++) {
+            #pragma omp for
+            for (i = j; i < n; i++) {
+                sum = 0;
+                for (k = 0; k < j; k++) {
+                    sum = sum + L[i][k] * U[k][j];
+                }
+                L[i][j] = A[i][j] - sum;
+            }
+            #pragma omp for
+            for (i = j; i < n; i++) {
+                sum = 0;
+                for(k = 0; k < j; k++) {
+                    sum = sum + L[j][k] * U[k][i];
+                }
+                if (L[j][j] == 0) {
+                    exit(0);
+                }
+                U[j][i] = (A[j][i] - sum) / L[j][j];
+            }
+        }
+    }
+}
+
 void s2_crout(double const **A, double **L, double **U, int n, int num_threads) {
     int i, j, k;
     // omp_set_num_threads(num_threads);
@@ -139,6 +175,24 @@ int main(int argc, char* argv[]){
 		strncat(u_out_fname,ext,4);
 		write_output(u_out_fname,U,n);
 	}
+    else if(strt == 1){
+        start = omp_get_wtime();
+        s1_crout(A,L,U,n,num_threads);
+        end = omp_get_wtime();
+        char* ext = ".txt";
+        char l_out_fname[50];
+        strcpy(l_out_fname,"output_L_1_");
+        const char * th = (const char *) argv[3];
+        strncat(l_out_fname,th,strlen(th));
+        strncat(l_out_fname,ext,4);
+
+        write_output(l_out_fname,L,n);
+        char u_out_fname[50];
+        strcpy(u_out_fname,"output_U_1_");
+        strncat(u_out_fname,th,strlen(th));
+        strncat(u_out_fname,ext,4);
+        write_output(u_out_fname,U,n);
+    }
     else if(strt == 2){
 		start = omp_get_wtime();
 		s2_crout(A,L,U,n,num_threads);
