@@ -40,32 +40,35 @@ void s2_crout(double const **A, double **L, double **U, int n, int num_threads) 
 		U[i][i] = 1;
 	}
 	for (j = 0; j < n; j++) {
-		// #pragma omp parallel num_threads(num_threads)
-		// {
-			#pragma omp parallel sections num_threads(num_threads) private(sum)
+		#pragma omp parallel num_threads(num_threads) private(sum)
+		{
+			#pragma omp sections private(sum)
 			{
 				#pragma omp section
 				{
 					for (i = j+1; i < n; i++) {
 						sum = 0;
-						for (k = 0; k < j; k++) {
-							sum = sum + L[i][k] * U[k][j];
-						}
+							for (k = 0; k < j; k++) {
+								sum = sum + L[i][k] * U[k][j];
+							}
 						L[i][j] = A[i][j] - sum;
 					}
 				}
+			}
+			#pragma omp sections private(sum)
+			{
 				#pragma omp section
 				{
 					sum = 0;
-					for (k = 0; k < j; k++) {
-						sum = sum + L[j][k] * U[k][j];
-					}
+						for (k = 0; k < j; k++) {
+							sum = sum + L[j][k] * U[k][j];
+						}
 					L[j][j] = A[j][j] - sum;
 					for (i = j; i < n; i++) {
 						sum = 0;
-						for(k = 0; k < j; k++) {
-							sum = sum + L[j][k] * U[k][i];
-						}
+							for(k = 0; k < j; k++) {
+								sum = sum + L[j][k] * U[k][i];
+							}
 						if (L[j][j] == 0) {
 							exit(0);
 						}
@@ -73,7 +76,7 @@ void s2_crout(double const **A, double **L, double **U, int n, int num_threads) 
 					}
 				}
 			}
-		// }
+		}
 	}
 }
 void write_output(char fname[], double** arr, int n ){
