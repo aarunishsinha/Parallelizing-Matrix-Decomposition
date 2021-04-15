@@ -76,7 +76,7 @@ void s2_crout(double const **A, double **L, double **U, int n, int num_threads) 
         U[i][i] = 1;
     }
     for (j = 0; j < n; j++) {
-        #pragma omp parallel sections num_threads(num_threads) private(i, k, sum)
+        #pragma omp parallel sections num_threads(num_threads) private(sum, i, k)
         {
             #pragma omp section
             {
@@ -112,7 +112,7 @@ void s2_crout(double const **A, double **L, double **U, int n, int num_threads) 
 
 void s3_section_1(double const **A, double **L, double **U, int n, int num_threads, int j){
     #pragma omp parallel for num_threads(num_threads)
-    for (int i = j; i < n; i++) {
+    for (int i = j + 1; i < n; i++) {
         double sum = 0;
         for (int k = 0; k < j; k++) {
             sum = sum + L[i][k] * U[k][j];

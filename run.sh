@@ -1,3 +1,4 @@
+#!/bin/bash
 n=$1
 filename=$2
 threads=$3

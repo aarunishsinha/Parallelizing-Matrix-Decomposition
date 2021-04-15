@@ -28,4 +28,5 @@ test*
 *.txt
 !input*.txt
 .idea/
-*.un~
+*~
+omp_strats
