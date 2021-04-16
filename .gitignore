@@ -30,3 +30,4 @@ test*
 .idea/
 *~
 omp_strats
+mpi_strat
