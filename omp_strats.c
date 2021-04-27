@@ -110,6 +110,98 @@ void s2_crout(double const **A, double **L, double **U, int n, int num_threads) 
     }
 }
 
+void s2_crout_serial(double const **A, double **L, double **U, int n, int j){
+	int i, k;
+	double sum = 0;
+	for (int i = j; i < n; i++) {
+		sum = 0;
+		for (int k = 0; k < j; k++) {
+			sum = sum + L[i][k] * U[k][j];
+		}
+		L[i][j] = A[i][j] - sum;
+	}
+
+	for (int i = j; i < n; i++) {
+		sum = 0;
+		for(int k = 0; k < j; k++) {
+			sum = sum + L[j][k] * U[k][i];
+		}
+		if (L[j][j] == 0) {
+			exit(0);
+		}
+		U[j][i] = (A[j][i] - sum) / L[j][j];
+	}
+}
+void s2_crout_base(double const **A, double **L, double **U, int n, int j){
+	int i, k;
+	double sum = 0;
+	#pragma omp parallel sections num_threads(2) private(sum, i, k)
+	{
+			#pragma omp section
+			{
+					for (i = j + 1; i < n; i++) {
+							sum = 0;
+							for (k = 0; k < j; k++) {
+									sum = sum + L[i][k] * U[k][j];
+							}
+							L[i][j] = A[i][j] - sum;
+					}
+			}
+			#pragma omp section
+			{
+					sum = 0;
+					for (k = 0; k < j; k++) {
+							sum = sum + L[j][k] * U[k][j];
+					}
+					L[j][j] = A[j][j] - sum;
+					for (i = j; i < n; i++) {
+							sum = 0;
+							for(k = 0; k < j; k++) {
+									sum = sum + L[j][k] * U[k][i];
+							}
+							if (L[j][j] == 0) {
+									exit(0);
+							}
+							U[j][i] = (A[j][i] - sum) / L[j][j];
+					}
+			}
+	}
+}
+void s2_crout_recurr(double const **A, double **L, double **U, int n, int num_threads, int j){
+	// int i, k;
+	// double sum = 0;
+	if(num_threads==1){
+		s2_crout_serial(A,L,U,n,j);
+	}
+	else if (num_threads==2){
+		s2_crout_base(A,L,U,n,j);
+	}
+	else{
+		#pragma omp parallel sections num_threads(2)
+		{
+			#pragma omp section
+			{
+				s2_crout_recurr(A,L,U,(n+j)/2,num_threads/2,j);
+			}
+			#pragma omp section
+			{
+				s2_crout_recurr(A,L,U,n,(num_threads-num_threads/2),((n+j)/2));
+			}
+		}
+	}
+}
+void s2_crout_new(double const **A, double **L, double **U, int n, int num_threads){
+	int i, j, k;
+	// omp_set_num_threads(num_threads);
+	double sum = 0;
+	for (i = 0; i < n; i++) {
+			U[i][i] = 1;
+	}
+	for (j = 0; j < n; j++) {
+		s2_crout_recurr(A,L,U,n,num_threads,j);
+	}
+}
+
 void s3_section_1(double const **A, double **L, double **U, int n, int num_threads, int j){
     #pragma omp parallel for num_threads(num_threads)
     for (int i = j + 1; i < n; i++) {
@@ -253,7 +345,7 @@ int main(int argc, char* argv[]){
     }
     else if(strt == 2){
 		// start = omp_get_wtime();
-		s2_crout(A,L,U,n,num_threads);
+		s2_crout_new(A,L,U,n,num_threads);
 		// end = omp_get_wtime();
 		char* ext = ".txt";
 		char l_out_fname[50];
