@@ -179,6 +179,7 @@ void write_output(char fname[], double** arr, int n ){
 
 int main(int argc, char* argv[]){
 	double start = 0, end = 0;
+    start = omp_get_wtime();
     char* end_pointer;
 	int n = strtol(argv[1], &end_pointer, 10);
 	char* filename = argv[2];
@@ -215,9 +216,9 @@ int main(int argc, char* argv[]){
         U[i] = (double*)malloc(sizeof(double)*n);
 	}
     if(strt == 0){
-		start = omp_get_wtime();
+		// start = omp_get_wtime();
 		crout(A,L,U,n);
-		end = omp_get_wtime();
+		// end = omp_get_wtime();
 		char* ext = ".txt";
 		char l_out_fname[50];
 		strcpy(l_out_fname,"output_L_0_");
@@ -233,9 +234,9 @@ int main(int argc, char* argv[]){
 		write_output(u_out_fname,U,n);
 	}
     else if(strt == 1){
-        start = omp_get_wtime();
+        // start = omp_get_wtime();
         s1_crout(A,L,U,n,num_threads);
-        end = omp_get_wtime();
+        // end = omp_get_wtime();
         char* ext = ".txt";
         char l_out_fname[50];
         strcpy(l_out_fname,"output_L_1_");
@@ -251,9 +252,9 @@ int main(int argc, char* argv[]){
         write_output(u_out_fname,U,n);
     }
     else if(strt == 2){
-		start = omp_get_wtime();
+		// start = omp_get_wtime();
 		s2_crout(A,L,U,n,num_threads);
-		end = omp_get_wtime();
+		// end = omp_get_wtime();
 		char* ext = ".txt";
 		char l_out_fname[50];
 		strcpy(l_out_fname,"output_L_2_");
@@ -269,9 +270,9 @@ int main(int argc, char* argv[]){
 		write_output(u_out_fname,U,n);
 	}
     else if(strt == 3){
-        start = omp_get_wtime();
+        // start = omp_get_wtime();
         s3_crout(A,L,U,n,num_threads);
-        end = omp_get_wtime();
+        // end = omp_get_wtime();
         char* ext = ".txt";
         char l_out_fname[50];
         strcpy(l_out_fname,"output_L_3_");
@@ -293,6 +294,7 @@ int main(int argc, char* argv[]){
     else{
         exit(EXIT_FAILURE);
     }
+    end = omp_get_wtime();
 	printf("Work took %f seconds\n", end - start);
   return 0;
 }
