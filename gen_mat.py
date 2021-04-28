@@ -2,7 +2,7 @@ import numpy as np
 import sys
 
 n = int(sys.argv[1])
-file = sys.argv[2]
+file = f'input_{n}_{n}.txt'
 
 A = np.random.uniform(-4, 4, (n, n))
 

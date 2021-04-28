@@ -8,8 +8,8 @@ run: test.c
 	./omp_strats $(N) $(INP) $(P) $(S)
 
 check:
-	python format_checker.py $(INP) output_L_$(S)_$(P).txt output_U_$(S)_$(P).txt
+	python3 format_checker.py $(INP) output_L_$(S)_$(P).txt output_U_$(S)_$(P).txt
 
 clean:
-	rm omp_strats.exe
+	rm omp_strats
 

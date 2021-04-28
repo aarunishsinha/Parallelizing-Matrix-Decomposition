@@ -110,76 +110,75 @@ void s2_crout(double const **A, double **L, double **U, int n, int num_threads) 
     }
 }
 
-void s2_crout_serial(double const **A, double **L, double **U, int n, int j){
+void s2_crout_serial(double const **A, double **L, double **U, int n, int j, int start, int end){
 	int i, k;
 	double sum = 0;
-	for (i = j + 1; i < n; i++) {
-			sum = 0;
-			for (k = 0; k < j; k++) {
-					sum = sum + L[i][k] * U[k][j];
-			}
-			L[i][j] = A[i][j] - sum;
+	for (i = start; i < end; i++) {
+		sum = 0;
+		for (k = 0; k < j; k++) {
+				sum = sum + L[i][k] * U[k][j];
+		}
+		L[i][j] = A[i][j] - sum;
 	}
-	sum = 0;
-	for (k = 0; k < j; k++) {
-			sum = sum + L[j][k] * U[k][j];
-	}
-	L[j][j] = A[j][j] - sum;
-	for (i = j; i < n; i++) {
-			sum = 0;
-			for(k = 0; k < j; k++) {
-					sum = sum + L[j][k] * U[k][i];
-			}
-			if (L[j][j] == 0) {
+	for (i = start; i < end; i++) {
+		sum = 0;
+		for(k = 0; k < j; k++) {
+				sum = sum + L[j][k] * U[k][i];
+		}
+		if (L[j][j] == 0) {
 					exit(0);
-			}
-			U[j][i] = (A[j][i] - sum) / L[j][j];
+		}
+		U[j][i] = (A[j][i] - sum) / L[j][j];
 	}
 }
-void s2_crout_base(double const **A, double **L, double **U, int n, int j){
+void s2_crout_base(double const **A, double **L, double **U, int n, int j, int start, int end){
 	int i, k;
 	double sum = 0;
 	#pragma omp parallel sections num_threads(2) private(sum, i, k)
 	{
-			#pragma omp section
-			{
-					for (i = j + 1; i < n; i++) {
-							sum = 0;
-							for (k = 0; k < j; k++) {
-									sum = sum + L[i][k] * U[k][j];
-							}
-							L[i][j] = A[i][j] - sum;
-					}
+		#pragma omp section
+		{	
+			for (i = start; i < end; i++) {
+				sum = 0;
+				for (k = 0; k < j; k++) {
+					sum = sum + L[i][k] * U[k][j];
+				}
+				L[i][j] = A[i][j] - sum;
 			}
-			#pragma omp section
-			{
-					sum = 0;
-					for (k = 0; k < j; k++) {
-							sum = sum + L[j][k] * U[k][j];
-					}
-					L[j][j] = A[j][j] - sum;
-					for (i = j; i < n; i++) {
-							sum = 0;
-							for(k = 0; k < j; k++) {
-									sum = sum + L[j][k] * U[k][i];
-							}
-							if (L[j][j] == 0) {
-									exit(0);
-							}
-							U[j][i] = (A[j][i] - sum) / L[j][j];
-					}
+		}
+		#pragma omp section
+		{
+			// sum = 0;
+			// for (k = 0; k < j; k++) {
+			// 	sum = sum + L[j][k] * U[k][j];
+			// }
+			// L[j][j] = A[j][j] - sum;
+			for (i = start; i < end; i++) {
+				sum = 0;
+				for(k = 0; k < j; k++) {
+					sum = sum + L[j][k] * U[k][i];
+				}
+				if (L[j][j] == 0) {
+					exit(0);
+				}
+				U[j][i] = (A[j][i] - sum) / L[j][j];
 			}
+		}
 	}
 }
-void s2_crout_recurr(double const **A, double **L, double **U, int n, int num_threads, int j){
+void s2_crout_recurr(double const **A, double **L, double **U, int n, int num_threads, int j, int start, int end){
 	// int i, k;
 	// double sum = 0;
-	if(num_threads==1){
-		s2_crout_serial(A,L,U,n,j);
+	double sum = 0;
+	for (int k = 0; k < j; k++) {
+		sum = sum + L[j][k] * U[k][j];
+	}
+	L[j][j] = A[j][j] - sum;
+	if(num_threads == 1){
+		s2_crout_serial(A,L,U,n,j, start, end);
 	}
 	else if (num_threads==2){
-		// printf("Entered base of j = %d and n = %d\n", j, n);
-		s2_crout_base(A,L,U,n,j);
+		s2_crout_base(A,L,U,n,j, start, end);
 	}
 	else{
 		#pragma omp parallel sections num_threads(2)
@@ -187,12 +186,12 @@ void s2_crout_recurr(double const **A, double **L, double **U, int n, int num_th
 			#pragma omp section
 			{
 				// printf("Entered first section : %d, %d\n", num_threads,j);
-				s2_crout_recurr(A,L,U,(n+j)/2,num_threads/2,j);
+				s2_crout_recurr(A,L,U,n,num_threads/2,j, start, (start + end)/2);
 			}
 			#pragma omp section
 			{
 				// printf("Entered second section : %d, %d\n", num_threads,j);
-				s2_crout_recurr(A,L,U,n,(num_threads-num_threads/2),((n+j)/2));
+				s2_crout_recurr(A,L,U,n,(num_threads-num_threads/2),j, (start + end)/2, end);
 			}
 		}
 	}
@@ -200,12 +199,13 @@ void s2_crout_recurr(double const **A, double **L, double **U, int n, int num_th
 void s2_crout_new(double const **A, double **L, double **U, int n, int num_threads){
 	int i, j, k;
 	// omp_set_num_threads(num_threads);
+	omp_set_nested(1);
 	double sum = 0;
 	for (i = 0; i < n; i++) {
 			U[i][i] = 1;
 	}
 	for (j = 0; j < n; j++) {
-		s2_crout_recurr(A,L,U,n,num_threads,j);
+		s2_crout_recurr(A,L,U,n,num_threads,j, j, n);
 	}
 }
 
