@@ -15,3 +15,6 @@ fi
 if [[ ${strt} == "3" ]];
     then ./omp_strats $n $filename $threads $strt
 fi
+if [[ ${strt} == "4" ]];
+    then mpiexec -np $threads ./mpi_strat $n $filename $threads
+fi
