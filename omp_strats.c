@@ -394,6 +394,6 @@ int main(int argc, char* argv[]){
         exit(EXIT_FAILURE);
     }
     end = omp_get_wtime();
-	printf("Work took %f seconds\n", end - start);
+	// printf("Work took %f seconds\n", end - start);
   return 0;
 }

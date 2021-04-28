@@ -16,6 +16,8 @@ void write_output(char fname[], double** arr, int n ){
 
 int main(int argc, char **argv) 
 { 	
+	double start=0,end=0;
+	start = MPI_Wtime();
 	char* end_pointer;
 	int n = strtol(argv[1], &end_pointer, 10);
 	char* filename = argv[2];
@@ -113,7 +115,8 @@ int main(int argc, char **argv)
 		write_output(u_out_fname,U,n);
 	}
 
-
+	end = MPI_Wtime();
     MPI_Finalize();
+    // printf("Work took %f seconds\n", end - start);
     return 0;
  }
