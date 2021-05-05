@@ -3,11 +3,11 @@ COL380 - Parallel and Distributed Programming
 
 ## Crout Matrix Decomposition
 ### Theory
-The Crout matrix decomposition is an LU decomposition that decomposes a matrix into a lower triangular matrix (L), an upper triangular matrix (U) and, although not always needed, a permutation matrix (P). It was developed by Prescott Durand Crout. Crout method returns a lower triangular matrix and a unit upper triangular matrix.
-So, if a matrix decomposition of a matrix A is such that:
-A = LDU
-being L a unit lower triangular matrix, D a diagonal matrix and U a unit upper triangular matrix, then Crout's method produces
-A = (LD)U = LU
+The Crout matrix decomposition is an LU decomposition that decomposes a matrix into a lower triangular matrix (L), an upper triangular matrix (U) and, although not always needed, a permutation matrix (P). It was developed by Prescott Durand Crout. Crout method returns a lower triangular matrix and a unit upper triangular matrix.\
+So, if a matrix decomposition of a matrix A is such that:\
+A = LDU\
+being L a unit lower triangular matrix, D a diagonal matrix and U a unit upper triangular matrix, then Crout's method produces\
+A = (LD)U = LU\
 ### Sequential Program
 ```C
 void crout(double const **A, double **L, double **U, int n) {
@@ -53,3 +53,5 @@ In this strategy we were supposed to use both ```parallel for``` and ```parallel
 In this strategy we were supposed to write an ```MPI``` version that solves the problem in a distributed manner.
 
 **Contraint**: Do not use `reduction` or `atomic` clauses in any implementation.
+
+For more details and analysis check [Report](https://github.com/aarunishsinha/Parallelizing-Matrix-Decomposition/blob/master/Report.pdf)
