@@ -55,3 +55,14 @@ In this strategy we were supposed to write an ```MPI``` version that solves the 
 **Contraint**: Do not use `reduction` or `atomic` clauses in any implementation.
 
 For more details and analysis check [Report](https://github.com/aarunishsinha/Parallelizing-Matrix-Decomposition/blob/master/Report.pdf)
+
+## Execution
+### Compile
+```shell
+bash compile.sh
+```
+### Run
+```shell
+bash run.sh <number of rows/columns in matrix> <input_filename> <num_threads> <strategy(0/1/2/3/4)>
+```
+
